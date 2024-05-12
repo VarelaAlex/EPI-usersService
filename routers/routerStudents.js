@@ -3,9 +3,9 @@ const database = require("../database");
 const activeApiKeys = require("../activeApiKeys");
 const jwt = require("jsonwebtoken");
 
-const routerTeachers = express.Router();
+const routerStudents = express.Router();
 
-routerTeachers.post("/", async (req, res) => {
+routerStudents.post("/", async (req, res) => {
 
     let { name, lastName, email, password } = req.body;
 
@@ -48,32 +48,22 @@ routerTeachers.post("/", async (req, res) => {
     res.status(200).json({ inserted: teacher });
 });
 
-routerTeachers.post("/login", async (req, res) => {
+routerStudents.post("/login", async (req, res) => {
 
-    let { email, password } = req.body;
+    let { username } = req.body;
 
-    if (!email?.trim()) {
-        return res.status(400).json({ error: { email: "login.error.email.empty" } });
-    }
-
-    if (!password?.trim()) {
-        return res.status(400).json({ error: { password: "login.error.password.empty" } });
+    if (!username?.trim()) {
+        return res.status(400).json({ error: { username: "login.error.username.empty" } });
     }
 
     database.connect();
 
-    let teacher = null;
+    let student = null;
     try {
-        let teacherEmail = await database.query('SELECT email FROM teachers WHERE email = ?', [email]);
+        student = await database.query('SELECT id, username, name FROM students WHERE username = ?', [username]);
 
-        if (teacherEmail.length <= 0) {
-            return res.status(404).json({ error: { email: "login.error.email.notExist" } });
-        }
-
-        teacher = await database.query('SELECT id, email, name FROM teachers WHERE email = ? AND password = ?', [email, password]);
-
-        if (teacher.length === 0) {
-            return res.status(400).json({ error: { password: "login.error.password.incorrect" } });
+        if (username.length <= 0) {
+            return res.status(404).json({ error: { email: "login.error.username.notExist" } });
         }
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
@@ -83,34 +73,34 @@ routerTeachers.post("/login", async (req, res) => {
 
     let apiKey = jwt.sign(
         {
-            email: teacher[0].email,
-            id: teacher[0].id,
-            role: "teacher"
+            username: student[0].username,
+            id: student[0].id,
+            role: "student"
         },
         "HYTEXJWTSecret");
     activeApiKeys.push(apiKey);
 
     res.status(200).json({
         apiKey: apiKey,
-        name: teacher[0].name,
-        id: teacher[0].id,
-        email: teacher[0].email
+        name: student[0].name,
+        id: student[0].id,
+        username: student[0].username
     });
 });
 
-routerTeachers.get("/disconnect", async (req, res) => {
+routerStudents.get("/disconnect", async (req, res) => {
 
     let apiKeyIndex = activeApiKeys.indexOf(req.query.apiKey);
     if (apiKeyIndex > -1) {
         activeApiKeys.splice(apiKeyIndex, 1);
         res.status(200).json({ removed: true });
     } else {
-        return res.status(404).json({ error: "Teacher not found" });
+        return res.status(404).json({ error: "Student not found" });
     }
 });
 
-routerTeachers.get("/checkLogin", async (_req, res) => {
+routerStudents.get("/checkLogin", async (_req, res) => {
     return res.status(200).json({ message: "OK" });
 });
 
-module.exports = routerTeachers;
+module.exports = routerStudents;
