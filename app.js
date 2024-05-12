@@ -13,8 +13,6 @@ app.use(express.json());
 
 app.use(["/teachers/checkLogin"], (req, res, next) => {
 
-    console.log("Executing middleware");
-
     let apiKey = req.query.apiKey;
     if (apiKey === undefined) {
         return res.status(401).json({ error: "No apiKey" });
