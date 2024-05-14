@@ -7,13 +7,14 @@ const routerClassrooms = express.Router();
 
 routerClassrooms.post("/", async (req, res) => {
 
-    let { name, teacherId } = req.body;
+    let { name } = req.body;
+    let teacherId = req.infoApiKey.id;
 
     if (!name?.trim()) {
         return res.status(400).json({ error: { name: "classrooms.create.error.name" } });
     }
 
-    if (!teacherId?.trim()) {
+    if (!teacherId) {
         return res.status(400).json({ error: { teacher: "classrooms.create.error.teacher" } });
     }
 
@@ -21,7 +22,7 @@ routerClassrooms.post("/", async (req, res) => {
 
     let classroom = null;
     try {
-        let classroomName = await database.query('SELECT name FROM classrooms WHERE name = ?, teacherId = ?', [name, teacherId]);
+        let classroomName = await database.query('SELECT name FROM classrooms WHERE name = ? AND teacherId = ?', [name, teacherId]);
 
         if (classroomName.length > 0) {
             return res.status(404).json({ error: { name: "classrooms.create.error.repeated" } });
@@ -61,6 +62,32 @@ routerClassrooms.get("/list", async (req, res) => {
     }
 
     res.status(200).json(classrooms);
+});
+
+routerClassrooms.delete("/:classroomId", async (req, res) => {
+
+    let { classroomId } = req.params;
+
+    if (!classroomId) {
+        return res.status(400).json({ error: { id: "classrooms.delete.error.id" } });
+    }
+
+    let result = null;
+
+    database.connect();
+    try {
+        result = await database.query("DELETE FROM classrooms WHERE id = ?", [classroomId]);
+    } catch (e) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    } finally {
+        database.disconnect();
+    }
+
+    if (result.affectedRows === 0) {
+        return res.status(404).json({ error: { classroom: "classrooms.delete.error.notExist" } });
+    }
+
+    res.status(200).json({ deleted: true });
 });
 
 module.exports = routerClassrooms;
