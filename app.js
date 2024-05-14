@@ -1,9 +1,10 @@
 const express = require('express');
 const jwt = require("jsonwebtoken");
-const routerTeachers = require('./routers/routerTeacher');
-const routerStudents = require('./routers/routerStudents');
 let activeApiKeys = require("./activeApiKeys");
 let cors = require('cors');
+const routerTeachers = require('./routers/routerTeacher');
+const routerStudents = require('./routers/routerStudents');
+const routerClassrooms = require('./routers/routerClassrooms');
 
 const port = 8081;
 const app = express();
@@ -40,7 +41,7 @@ app.use(["/students/*"], (req, res, next) => {
     next();
 });
 */
-app.use(["/teachers/checkLogin", "/students/checkLogin"], (req, res, next) => {
+app.use(["/teachers/checkLogin", "/students/checkLogin", "/classrooms"], (req, res, next) => {
 
     let apiKey = req.query.apiKey;
     if (apiKey === undefined) {
@@ -56,6 +57,7 @@ app.use(["/teachers/checkLogin", "/students/checkLogin"], (req, res, next) => {
 
 app.use("/teachers", routerTeachers);
 app.use("/students", routerStudents);
+app.use("/classrooms", routerClassrooms);
 
 app.listen(port, () => {
     console.log("Active server listening on port", port);
