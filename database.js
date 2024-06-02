@@ -5,8 +5,8 @@ let database = {
     configuration: {
         host: 'localhost',
         user: 'root',
-        password: 'root',
-        database: 'HYTEX',
+        password: 'rootroot',
+        database: 'hytex',
         multipleStatements: true
     },
     connected: false,
