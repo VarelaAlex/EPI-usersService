@@ -59,6 +59,18 @@ app.use("/teachers", routerTeachers);
 app.use("/students", routerStudents);
 app.use("/classrooms", routerClassrooms);
 
+app.get("/checkApiKey", async (req, res) => {
+    let apiKey = req.query.apiKey;
+    if (apiKey === undefined) {
+        return res.status(401).json({ error: "No apiKey" });
+    }
+    let infoApiKey = jwt.verify(apiKey, "HYTEXJWTSecret");
+    if (infoApiKey === undefined || activeApiKeys.indexOf(apiKey) === -1) {
+        return res.status(401).json({ error: "Invalid apiKey" });
+    }
+    return res.status(200).json({ infoApiKey });
+});
+
 app.listen(port, () => {
     console.log("Active server listening on port", port);
 });
