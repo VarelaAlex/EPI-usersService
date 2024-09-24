@@ -1,6 +1,7 @@
 let mysql = require('mysql');
 let util = require('util');
 
+// TODO: Remove credentials from here
 let database = {
     configuration: {
         host: 'localhost',
