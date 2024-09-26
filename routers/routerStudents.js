@@ -60,4 +60,26 @@ routerStudents.get("/checkLogin", async (_req, res) => {
     return res.status(200).json({ message: "OK" });
 });
 
+routerStudents.get("/:studentId", async (req, res) => {
+
+    let { studentId } = req.params;
+
+    let result = null;
+
+    database.connect();
+    try {
+        result = await database.query("SELECT * FROM students WHERE id = ?", [studentId]);
+    } catch (e) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    } finally {
+        database.disconnect();
+    }
+
+    if (result.length === 0) {
+        return res.status(404).json({ error: "student.error.notExist" });
+    }
+
+    res.status(200).json(result[0]);
+});
+
 module.exports = routerStudents;
