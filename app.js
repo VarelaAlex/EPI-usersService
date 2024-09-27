@@ -4,15 +4,16 @@ let cors = require('cors');
 const routerTeachers = require('./routers/routerTeacher');
 const routerStudents = require('./routers/routerStudents');
 const routerClassrooms = require('./routers/routerClassrooms');
-const https = require('https');
-const fs = require('fs');
+//const https = require('https');
+//const fs = require('fs');
 require('dotenv').config();
-
+/*
 const options = {
     key: fs.readFileSync('key.key'),
     cert: fs.readFileSync('cert.cert'),
     passphrase: process.env.PASSPHRASE
 };
+*/
 
 const port = process.env.PORT;
 const app = express();
@@ -50,12 +51,12 @@ app.get("/checkApiKey", async (req, res) => {
     }
     return res.status(200).json({ infoApiKey });
 });
-
+/*
 https.createServer(options, app).listen(port, () => {
     console.log("Active server listening on port", port);
 });
-/* 
+*/
+
 app.listen(port, () => {
     console.log("Active server listening on port", port);
 });
-*/
