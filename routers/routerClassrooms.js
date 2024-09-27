@@ -1,7 +1,5 @@
 const express = require('express');
 const database = require("../database");
-const activeApiKeys = require("../activeApiKeys");
-const jwt = require("jsonwebtoken");
 
 const routerClassrooms = express.Router();
 

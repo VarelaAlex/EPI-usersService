@@ -1,7 +1,7 @@
 const express = require('express');
 const database = require("../database");
-const activeApiKeys = require("../activeApiKeys");
 const jwt = require("jsonwebtoken");
+require('dotenv').config();
 
 const routerTeachers = express.Router();
 
@@ -87,8 +87,8 @@ routerTeachers.post("/login", async (req, res) => {
             id: teacher[0].id,
             role: "teacher"
         },
-        "HYTEXJWTSecret");
-    activeApiKeys.push(apiKey);
+        process.env.SECRET,
+        { expiresIn: '1h' });
 
     res.status(200).json({
         apiKey: apiKey,
@@ -96,17 +96,6 @@ routerTeachers.post("/login", async (req, res) => {
         id: teacher[0].id,
         email: teacher[0].email
     });
-});
-
-routerTeachers.get("/disconnect", async (req, res) => {
-
-    let apiKeyIndex = activeApiKeys.indexOf(req.query.apiKey);
-    if (apiKeyIndex > -1) {
-        activeApiKeys.splice(apiKeyIndex, 1);
-        res.status(200).json({ removed: true });
-    } else {
-        return res.status(404).json({ error: "Teacher not found" });
-    }
 });
 
 routerTeachers.get("/checkLogin", async (_req, res) => {

@@ -1,13 +1,13 @@
 let mysql = require('mysql');
 let util = require('util');
+require('dotenv').config();
 
-// TODO: Remove credentials from here
 let database = {
     configuration: {
-        host: 'localhost',
-        user: 'root',
-        password: 'rootroot',
-        database: 'hytex',
+        host: process.env.DB_HOST,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
         multipleStatements: true
     },
     connected: false,
@@ -26,6 +26,6 @@ let database = {
             this.mysqlConnection.end();
         }
     }
-}
+};
 
-module.exports = database
+module.exports = database;
