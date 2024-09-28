@@ -31,8 +31,7 @@ routerStudents.post("/login", async (req, res) => {
     let apiKey = jwt.sign(
         {
             username: student[0].username,
-            id: student[0].id,
-            role: "student"
+            id: student[0].id
         },
         process.env.SECRET,
         { expiresIn: '1h' });

@@ -84,8 +84,7 @@ routerTeachers.post("/login", async (req, res) => {
     let apiKey = jwt.sign(
         {
             email: teacher[0].email,
-            id: teacher[0].id,
-            role: "teacher"
+            id: teacher[0].id
         },
         process.env.SECRET,
         { expiresIn: '1h' });

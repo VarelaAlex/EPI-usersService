@@ -28,7 +28,12 @@ app.use(["/teachers/checkLogin", "/students/checkLogin", "/classrooms"], (req, r
     if (apiKey === undefined) {
         return res.status(401).json({ error: "No apiKey" });
     }
-    let infoApiKey = jwt.verify(apiKey, process.env.SECRET);
+    let infoApiKey;
+    try {
+        infoApiKey = jwt.verify(apiKey, process.env.SECRET);
+    } catch (err) {
+        return res.status(401).json({ error: "Invalid apiKey" });
+    }
     if (infoApiKey === undefined) {
         return res.status(401).json({ error: "Invalid apiKey" });
     }
@@ -45,7 +50,12 @@ app.get("/checkApiKey", async (req, res) => {
     if (apiKey === undefined) {
         return res.status(401).json({ error: "No apiKey" });
     }
-    let infoApiKey = jwt.verify(apiKey, process.env.SECRET);
+    let infoApiKey;
+    try {
+        infoApiKey = jwt.verify(apiKey, process.env.SECRET);
+    } catch (err) {
+        return res.status(401).json({ error: "Invalid apiKey" });
+    }
     if (infoApiKey === undefined) {
         return res.status(401).json({ error: "Invalid apiKey" });
     }
