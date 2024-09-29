@@ -15,7 +15,6 @@ routerStudents.post("/login", async (req, res) => {
     res.on('finish', () => {
         console.log('Response Headers:', res.getHeaders());
     });
-    next();
 
     let { username } = req.body;
 
