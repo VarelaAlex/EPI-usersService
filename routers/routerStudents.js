@@ -11,6 +11,12 @@ const routerStudents = express.Router();
 
 routerStudents.post("/login", async (req, res) => {
 
+    console.log(`Received ${req.method} request from ${req.headers.origin} to ${req.originalUrl}`);
+    res.on('finish', () => {
+        console.log('Response Headers:', res.getHeaders());
+    });
+    next();
+
     let { username } = req.body;
 
     if (!username?.trim()) {
