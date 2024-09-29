@@ -41,8 +41,21 @@ app.post('/token', (req, res) => {
         if (err) return res.status(403).json({ error: "Forbidden" });
 
         const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-        res.json(accessToken);
+        res.status(200).json(accessToken);
     });
+});
+
+app.post('/logout', async (req, res) => {
+    const refreshToken = req.body.token;
+    database.connect();
+    try {
+        await database.query('DELETE FROM refreshTokens WHERE refreshToken = ?', [refreshToken]);
+    } catch {
+        return false;
+    } finally {
+        database.disconnect();
+    }
+    res.status(204).json({ message: "No content" });
 });
 
 app.listen(port, () => {
