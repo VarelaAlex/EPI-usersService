@@ -12,6 +12,7 @@ const app = express();
 
 app.use(cors({
     origin: 'https://hytex-front-production.up.railway.app',
+    allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
 }));
