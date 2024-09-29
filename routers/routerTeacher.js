@@ -95,7 +95,7 @@ routerTeachers.post("/login", async (req, res) => {
     database.connect();
     try {
         await database.query('INSERT INTO refreshTokens (refreshToken) VALUES (?)', [tokens.refreshToken]);
-    } catch(e) {
+    } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
         database.disconnect();
@@ -108,8 +108,8 @@ routerTeachers.post("/login", async (req, res) => {
     });
 });
 
-routerTeachers.get("/checkLogin", authenticateToken, isTeacher, async (_req, res) => {
-    return res.status(200).json({ message: "OK" });
+routerTeachers.get("/checkLogin", authenticateToken, isTeacher, async (req, res) => {
+    return res.status(200).json({ user: req.user });
 });
 
 module.exports = routerTeachers;

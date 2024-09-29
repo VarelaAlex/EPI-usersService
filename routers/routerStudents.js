@@ -55,29 +55,8 @@ routerStudents.post("/login", async (req, res) => {
     });
 });
 
-routerStudents.get("/checkLogin", authenticateToken, isStudent, async (_req, res) => {
-    return res.status(200).json({ message: "OK" });
-});
-
-routerStudents.get("/", authenticateToken, isStudent, async (req, res) => {
-
-    let result = null;
-    let id = req.user.id;
-
-    database.connect();
-    try {
-        result = await database.query("SELECT * FROM students WHERE id = ?", [id]);
-    } catch (e) {
-        return res.status(500).json({ error: { type: "internalServerError", message: e } });
-    } finally {
-        database.disconnect();
-    }
-
-    if (result.length === 0) {
-        return res.status(404).json({ error: "student.error.notExist" });
-    }
-
-    res.status(200).json(result[0]);
+routerStudents.get("/checkLogin", authenticateToken, isStudent, async (req, res) => {
+    return res.status(200).json({ user: req.user });
 });
 
 module.exports = routerStudents;

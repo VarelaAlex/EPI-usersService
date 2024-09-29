@@ -34,11 +34,11 @@ let findRefreshToken = async (refreshToken) => {
 
 app.post('/token', (req, res) => {
     const refreshToken = req.body.token;
-    if (!refreshToken) return res.sendStatus(401);
-    if (!findRefreshToken(refreshToken)) return res.sendStatus(403);
+    if (!refreshToken) return res.status(401).json({ error: "Unauthorized" });
+    if (!findRefreshToken(refreshToken)) return res.status(403).json({ error: "Forbidden" });
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) return res.status(403).json({ error: "Forbidden" });
 
         const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
         res.json(accessToken);
