@@ -1,6 +1,10 @@
 const express = require('express');
 const database = require("../database");
-const jwt = require("jsonwebtoken");
+const {
+    generateTokens,
+    authenticateToken,
+    isStudent,
+} = require('../auth');
 require('dotenv').config();
 
 const routerStudents = express.Router();
@@ -15,9 +19,9 @@ routerStudents.post("/login", async (req, res) => {
 
     database.connect();
 
-    let student = null;
+    let response = null;
     try {
-        student = await database.query('SELECT id, username, name FROM students WHERE username = ?', [username]);
+        response = await database.query('SELECT id, username, name FROM students WHERE username = ?', [username]);
 
         if (username.length <= 0) {
             return res.status(404).json({ error: { email: "login.error.username.notExist" } });
@@ -28,35 +32,41 @@ routerStudents.post("/login", async (req, res) => {
         database.disconnect();
     }
 
-    let apiKey = jwt.sign(
-        {
-            username: student[0].username,
-            id: student[0].id
-        },
-        process.env.SECRET,
-        { expiresIn: '1h' });
+    let user = {
+        username: response[0].username,
+        id: response[0].id,
+        role: "student"
+    };
+
+    let tokens = generateTokens(user);
+    database.connect();
+    try {
+        await database.query('INSERT INTO refreshTokens (refreshToken) VALUES (?)', [tokens.refreshToken]);
+    } catch (e) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    } finally {
+        database.disconnect();
+    }
 
     res.status(200).json({
-        apiKey: apiKey,
-        name: student[0].name,
-        id: student[0].id,
-        username: student[0].username
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        name: response[0].name
     });
 });
 
-routerStudents.get("/checkLogin", async (_req, res) => {
+routerStudents.get("/checkLogin", authenticateToken, isStudent, async (_req, res) => {
     return res.status(200).json({ message: "OK" });
 });
 
-routerStudents.get("/:studentId", async (req, res) => {
-
-    let { studentId } = req.params;
+routerStudents.get("/", authenticateToken, isStudent, async (req, res) => {
 
     let result = null;
+    let id = req.user.id;
 
     database.connect();
     try {
-        result = await database.query("SELECT * FROM students WHERE id = ?", [studentId]);
+        result = await database.query("SELECT * FROM students WHERE id = ?", [id]);
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {

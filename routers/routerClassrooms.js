@@ -1,12 +1,13 @@
 const express = require('express');
 const database = require("../database");
+let { authenticateToken, isTeacher } = require('../auth');
 
 const routerClassrooms = express.Router();
 
-routerClassrooms.post("/", async (req, res) => {
+routerClassrooms.post("/", authenticateToken, isTeacher, async (req, res) => {
 
     let { name } = req.body;
-    let teacherId = req.infoApiKey.id;
+    let teacherId = req.user.id;
 
     if (!name?.trim()) {
         return res.status(400).json({ error: { name: "classrooms.create.error.name" } });
@@ -36,9 +37,9 @@ routerClassrooms.post("/", async (req, res) => {
     res.status(200).json({ inserted: classroom });
 });
 
-routerClassrooms.get("/list", async (req, res) => {
+routerClassrooms.get("/list", authenticateToken, isTeacher, async (req, res) => {
 
-    let teacherId = req.infoApiKey.id;
+    let teacherId = req.user.id;
 
     if (!teacherId) {
         return res.status(400).json({ error: { teacherId: "classrooms.list.error.teacher" } });
@@ -62,7 +63,7 @@ routerClassrooms.get("/list", async (req, res) => {
     res.status(200).json(classrooms);
 });
 
-routerClassrooms.delete("/:classroomId", async (req, res) => {
+routerClassrooms.delete("/:classroomId", authenticateToken, isTeacher, async (req, res) => {
 
     let { classroomId } = req.params;
 

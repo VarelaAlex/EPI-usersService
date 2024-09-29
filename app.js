@@ -4,16 +4,8 @@ let cors = require('cors');
 const routerTeachers = require('./routers/routerTeacher');
 const routerStudents = require('./routers/routerStudents');
 const routerClassrooms = require('./routers/routerClassrooms');
-//const https = require('https');
-//const fs = require('fs');
+const database = require('./database');
 require('dotenv').config();
-/*
-const options = {
-    key: fs.readFileSync('key.key'),
-    cert: fs.readFileSync('cert.cert'),
-    passphrase: process.env.PASSPHRASE
-};
-*/
 
 const port = process.env.PORT;
 const app = express();
@@ -22,50 +14,36 @@ app.use(cors());
 
 app.use(express.json());
 
-app.use(["/teachers/checkLogin", "/students/checkLogin", "/classrooms"], (req, res, next) => {
-
-    let apiKey = req.query.apiKey;
-    if (apiKey === undefined) {
-        return res.status(401).json({ error: "No apiKey" });
-    }
-    let infoApiKey;
-    try {
-        infoApiKey = jwt.verify(apiKey, process.env.SECRET);
-    } catch (err) {
-        return res.status(401).json({ error: "Invalid apiKey" });
-    }
-    if (infoApiKey === undefined) {
-        return res.status(401).json({ error: "Invalid apiKey" });
-    }
-    req.infoApiKey = infoApiKey;
-    next();
-});
-
 app.use("/teachers", routerTeachers);
 app.use("/students", routerStudents);
 app.use("/classrooms", routerClassrooms);
 
-app.get("/checkApiKey", async (req, res) => {
-    let apiKey = req.query.apiKey;
-    if (apiKey === undefined) {
-        return res.status(401).json({ error: "No apiKey" });
-    }
-    let infoApiKey;
+let findRefreshToken = async (refreshToken) => {
+
+    database.connect();
     try {
-        infoApiKey = jwt.verify(apiKey, process.env.SECRET);
-    } catch (err) {
-        return res.status(401).json({ error: "Invalid apiKey" });
+        let refreshTokenResponse = await database.query('SELECT refreshToken FROM refreshTokens WHERE refreshToken = ?', [refreshToken]);
+        if (refreshTokenResponse.length <= 0) return false;
+        return true;
+    } catch {
+        return false;
+    } finally {
+        database.disconnect();
     }
-    if (infoApiKey === undefined) {
-        return res.status(401).json({ error: "Invalid apiKey" });
-    }
-    return res.status(200).json({ infoApiKey });
+};
+
+app.post('/token', (req, res) => {
+    const refreshToken = req.body.token;
+    if (!refreshToken) return res.sendStatus(401);
+    if (!findRefreshToken(refreshToken)) return res.sendStatus(403);
+
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+        if (err) return res.sendStatus(403);
+
+        const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+        res.json(accessToken);
+    });
 });
-/*
-https.createServer(options, app).listen(port, () => {
-    console.log("Active server listening on port", port);
-});
-*/
 
 app.listen(port, () => {
     console.log("Active server listening on port", port);

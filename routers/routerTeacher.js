@@ -1,6 +1,10 @@
 const express = require('express');
 const database = require("../database");
-const jwt = require("jsonwebtoken");
+const {
+    generateTokens,
+    authenticateToken,
+    isTeacher,
+} = require('../auth');
 require('dotenv').config();
 
 const routerTeachers = express.Router();
@@ -81,23 +85,30 @@ routerTeachers.post("/login", async (req, res) => {
         database.disconnect();
     }
 
-    let apiKey = jwt.sign(
-        {
-            email: teacher[0].email,
-            id: teacher[0].id
-        },
-        process.env.SECRET,
-        { expiresIn: '1h' });
+    let user = {
+        username: teacher[0].username,
+        id: teacher[0].id,
+        role: "teacher"
+    };
+
+    let tokens = generateTokens(user);
+    database.connect();
+    try {
+        await database.query('INSERT INTO refreshTokens (refreshToken) VALUES (?)', [tokens.refreshToken]);
+    } catch(e) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    } finally {
+        database.disconnect();
+    }
 
     res.status(200).json({
-        apiKey: apiKey,
-        name: teacher[0].name,
-        id: teacher[0].id,
-        email: teacher[0].email
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        name: teacher[0].name
     });
 });
 
-routerTeachers.get("/checkLogin", async (_req, res) => {
+routerTeachers.get("/checkLogin", authenticateToken, isTeacher, async (_req, res) => {
     return res.status(200).json({ message: "OK" });
 });
 
