@@ -33,7 +33,7 @@ let findRefreshToken = async (refreshToken) => {
 };
 
 app.post('/token', (req, res) => {
-    const refreshToken = req.body.token;
+    const refreshToken = req.body.refreshToken;
     if (!refreshToken) return res.status(401).json({ error: "Unauthorized" });
     if (!findRefreshToken(refreshToken)) return res.status(403).json({ error: "Forbidden" });
 
