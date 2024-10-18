@@ -108,6 +108,70 @@ routerTeachers.post("/login", async (req, res) => {
     });
 });
 
+routerTeachers.get("/profile", authenticateToken, isTeacher, async (req, res) => {
+
+    let teacherId = req.user.id;
+    database.connect();
+
+    let teacher = null;
+    try {
+        teacher = await database.query('SELECT name, lastName, email FROM teachers WHERE id = ?', [teacherId]);
+    } catch (e) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    } finally {
+        database.disconnect();
+    }
+
+    res.status(200).json(teacher[0]);
+});
+
+routerTeachers.put("/profile", authenticateToken, isTeacher, async (req, res) => {
+
+    let { name, lastName, email } = req.body;
+    let teacherId = req.user.id;
+
+    if (!name?.trim()) {
+        return res.status(400).json({ error: { name: "profile.error.name" } });
+    }
+
+    if (!lastName?.trim()) {
+        return res.status(400).json({ error: { lastName: "profile.error.lastName" } });
+    }
+
+    if (!email?.trim()) {
+        return res.status(400).json({ error: { email: "profile.error.email.mandatory" } });
+    }
+
+    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+        return res.status(400).json({ error: { email: "profile.error.email.format" } });
+    }
+
+    database.connect();
+
+    let teacher = null;
+    try {
+        let teacherEmail = await database.query('SELECT email FROM teachers WHERE id = ?', [teacherId]);
+
+        if (teacherEmail.length > 1) {
+            return res.status(404).json({ error: { email: "profile.error.email.repeated" } });
+        }
+       
+        teacher = await database.query(
+            'UPDATE teachers \
+            SET \
+                name = IFNULL(?, name), \
+                lastName = IFNULL(?, lastName), \
+                email = IFNULL(?, email) \
+            WHERE id = ?', [name, lastName, email, teacherId]);
+    } catch (e) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    } finally {
+        database.disconnect();
+    }
+
+    res.status(200).json({ updated: teacher });
+});
+
 routerTeachers.get("/checkLogin", authenticateToken, isTeacher, async (req, res) => {
     return res.status(200).json({ user: req.user });
 });

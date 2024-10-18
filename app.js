@@ -33,20 +33,20 @@ let findRefreshToken = async (refreshToken) => {
 };
 
 app.post('/token', (req, res) => {
-    const refreshToken = req.body.refreshToken;
+    let refreshToken = req.body.refreshToken;
     if (!refreshToken) return res.status(401).json({ error: "Unauthorized" });
     if (!findRefreshToken(refreshToken)) return res.status(403).json({ error: "Forbidden" });
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) return res.status(403).json({ error: "Forbidden" });
 
-        const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+        const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '0.3h' });
         res.status(200).json(accessToken);
     });
 });
 
 app.post('/logout', async (req, res) => {
-    const refreshToken = req.body.token;
+    let refreshToken = req.body.token;
     database.connect();
     try {
         await database.query('DELETE FROM refreshTokens WHERE refreshToken = ?', [refreshToken]);
