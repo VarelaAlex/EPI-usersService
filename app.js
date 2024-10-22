@@ -32,13 +32,38 @@ let findRefreshToken = async (refreshToken) => {
     }
 };
 
-app.post('/token', (req, res) => {
+app.post('/token', async (req, res) => {
     let refreshToken = req.body.refreshToken;
-    if (!refreshToken) return res.status(401).json({ error: "Unauthorized" });
-    if (!findRefreshToken(refreshToken)) return res.status(403).json({ error: "Forbidden" });
+    if (!refreshToken) {
+        console.log("No refreshToken provided " + Date.now());
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+    if (!findRefreshToken(refreshToken)) {
+        console.log("There is no refreshToken in the DB " + Date.now());
+        database.connect();
+        try {
+            await database.query('DELETE FROM refreshTokens WHERE refreshToken = ?', [refreshToken]);
+        } catch {
+            return false;
+        } finally {
+            database.disconnect();
+        }
+        return res.status(403).json({ error: "Forbidden" });
+    }
 
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ error: "Forbidden" });
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+        if (err) {
+            console.log("The refreshToken is not valid " + Date.now());
+            database.connect();
+            try {
+                await database.query('DELETE FROM refreshTokens WHERE refreshToken = ?', [refreshToken]);
+            } catch {
+                return false;
+            } finally {
+                database.disconnect();
+            }
+            return res.status(403).json({ error: "Forbidden" });
+        }
 
         const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '0.3h' });
         res.status(200).json(accessToken);
