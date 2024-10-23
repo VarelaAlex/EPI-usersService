@@ -170,6 +170,26 @@ routerStudents.get("/checkLogin", authenticateToken, isStudent, async (req, res)
     return res.status(200).json({ user: req.user });
 });
 
+routerStudents.get("/currentStudent", authenticateToken, isStudent, async (req, res) => {
+
+    let studentId = req.user.id;
+
+    database.connect();
+    try {
+        result = await database.query("SELECT s.* FROM students s where s.id = ?", [studentId]);
+    } catch (e) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    } finally {
+        database.disconnect();
+    }
+
+    if (result.length <= 0) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    }
+
+    res.status(200).json(result[0]);
+});
+
 routerStudents.get("/:studentId", authenticateToken, isTeacher, async (req, res) => {
 
     let { studentId } = req.params;
