@@ -1,5 +1,7 @@
 const express = require('express');
 const database = require("../database");
+const bcrypt = require('bcryptjs');
+
 const {
     generateTokens,
     authenticateToken,
@@ -42,7 +44,9 @@ routerTeachers.post("/", async (req, res) => {
         if (teacherEmail.length > 0) {
             return res.status(404).json({ error: { email: "signup.error.email.repeated" } });
         }
-        teacher = await database.query('INSERT INTO teachers (name,lastName,email,password) VALUES (?,?,?,?)', [name, lastName, email, password]);
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        teacher = await database.query('INSERT INTO teachers (name,lastName,email,password) VALUES (?,?,?,?)', [name, lastName, email, hashedPassword]);
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
@@ -74,10 +78,12 @@ routerTeachers.post("/login", async (req, res) => {
             return res.status(404).json({ error: { email: "login.error.email.notExist" } });
         }
 
-        teacher = await database.query('SELECT id, email, name FROM teachers WHERE email = ? AND password = ?', [email, password]);
+        teacher = await database.query('SELECT id, email, name, password FROM teachers WHERE email = ?', [email]);
 
-        if (teacher.length === 0) {
-            return res.status(400).json({ error: { password: "login.error.password.incorrect" } });
+        const isMatch = await bcrypt.compare(password, teacher[0].password);
+
+        if (!isMatch) {
+            return res.status(401).json({ error: { password: "login.error.password.incorrect" } });
         }
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
@@ -127,7 +133,7 @@ routerTeachers.get("/profile", authenticateToken, isTeacher, async (req, res) =>
 
 routerTeachers.put("/profile", authenticateToken, isTeacher, async (req, res) => {
 
-    let { name, lastName, email } = req.body;
+    let { name, lastName, email, password } = req.body;
     let teacherId = req.user.id;
 
     if (!name?.trim()) {
@@ -140,6 +146,10 @@ routerTeachers.put("/profile", authenticateToken, isTeacher, async (req, res) =>
 
     if (!email?.trim()) {
         return res.status(400).json({ error: { email: "profile.error.email.mandatory" } });
+    }
+
+    if (!password?.trim()) {
+        return res.status(400).json({ error: { name: "profile.error.password" } });
     }
 
     if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
@@ -155,14 +165,18 @@ routerTeachers.put("/profile", authenticateToken, isTeacher, async (req, res) =>
         if (teacherEmail.length > 1) {
             return res.status(404).json({ error: { email: "profile.error.email.repeated" } });
         }
-       
+
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         teacher = await database.query(
             'UPDATE teachers \
             SET \
                 name = IFNULL(?, name), \
                 lastName = IFNULL(?, lastName), \
-                email = IFNULL(?, email) \
-            WHERE id = ?', [name, lastName, email, teacherId]);
+                email = IFNULL(?, email), \
+                password = IFNULL(?, password) \
+            WHERE id = ?', [name, lastName, email, hashedPassword, teacherId]);
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
