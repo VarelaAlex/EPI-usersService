@@ -35,7 +35,7 @@ routerTeachers.post("/", async (req, res) => {
         return res.status(400).json({ error: { email: "signup.error.email.format" } });
     }
 
-    database.connect();
+    
 
     let teacher = null;
     try {
@@ -50,7 +50,7 @@ routerTeachers.post("/", async (req, res) => {
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
-        database.disconnect();
+        
     }
 
     res.status(200).json({ inserted: teacher });
@@ -68,7 +68,7 @@ routerTeachers.post("/login", async (req, res) => {
         return res.status(400).json({ error: { password: "login.error.password.empty" } });
     }
 
-    database.connect();
+    
 
     let teacher = null;
     try {
@@ -88,7 +88,7 @@ routerTeachers.post("/login", async (req, res) => {
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
-        database.disconnect();
+        
     }
 
     let user = {
@@ -98,13 +98,13 @@ routerTeachers.post("/login", async (req, res) => {
     };
 
     let tokens = generateTokens(user);
-    database.connect();
+    
     try {
         await database.query('INSERT INTO refreshTokens (refreshToken) VALUES (?)', [tokens.refreshToken]);
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
-        database.disconnect();
+        
     }
 
     res.status(200).json({
@@ -117,7 +117,6 @@ routerTeachers.post("/login", async (req, res) => {
 routerTeachers.get("/profile", authenticateToken, isTeacher, async (req, res) => {
 
     let teacherId = req.user.id;
-    database.connect();
 
     let teacher = null;
     try {
@@ -125,7 +124,7 @@ routerTeachers.get("/profile", authenticateToken, isTeacher, async (req, res) =>
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
-        database.disconnect();
+        
     }
 
     res.status(200).json(teacher[0]);
@@ -133,7 +132,8 @@ routerTeachers.get("/profile", authenticateToken, isTeacher, async (req, res) =>
 
 routerTeachers.put("/profile", authenticateToken, isTeacher, async (req, res) => {
 
-    let { name, lastName, email, password } = req.body;
+
+    let { name, lastName, email/*, password*/ } = req.body;
     let teacherId = req.user.id;
 
     if (!name?.trim()) {
@@ -148,39 +148,47 @@ routerTeachers.put("/profile", authenticateToken, isTeacher, async (req, res) =>
         return res.status(400).json({ error: { email: "profile.error.email.mandatory" } });
     }
 
-    if (!password?.trim()) {
+    /*if (password && !password?.trim()) {
         return res.status(400).json({ error: { name: "profile.error.password" } });
-    }
+    }*/
 
-    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+    if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
         return res.status(400).json({ error: { email: "profile.error.email.format" } });
     }
 
-    database.connect();
-
     let teacher = null;
     try {
-        let teacherEmail = await database.query('SELECT email FROM teachers WHERE id = ?', [teacherId]);
+        let teacherEmail = await database.query(
+            'SELECT email FROM teachers WHERE email = ? AND id != ?',
+            [email, teacherId]
+        );
 
-        if (teacherEmail.length > 1) {
+        if ( teacherEmail.length > 0 ) {
             return res.status(404).json({ error: { email: "profile.error.email.repeated" } });
         }
 
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        //const salt = await bcrypt.genSalt(12);
+        //const hashedPassword = await bcrypt.hash(password, salt);
 
-        teacher = await database.query(
-            'UPDATE teachers \
+        /* 'UPDATE teachers \
             SET \
                 name = IFNULL(?, name), \
                 lastName = IFNULL(?, lastName), \
                 email = IFNULL(?, email), \
                 password = IFNULL(?, password) \
-            WHERE id = ?', [name, lastName, email, hashedPassword, teacherId]);
+            WHERE id = ?'
+             */
+        teacher = await database.query(
+            'UPDATE teachers \
+            SET \
+                name = IFNULL(?, name), \
+                lastName = IFNULL(?, lastName), \
+                email = IFNULL(?, email) \
+            WHERE id = ?', [name, lastName, email, teacherId]);
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
-        database.disconnect();
+        
     }
 
     res.status(200).json({ updated: teacher });
