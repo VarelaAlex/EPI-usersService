@@ -6,7 +6,7 @@ const routerClassrooms = express.Router();
 
 routerClassrooms.post("/", authenticateToken, isTeacher, async (req, res) => {
 
-    let { name } = req.body;
+    let { name, level } = req.body;
     let teacherId = req.user?.id;
 
     if (!name?.trim()) {
@@ -17,7 +17,7 @@ routerClassrooms.post("/", authenticateToken, isTeacher, async (req, res) => {
         return res.status(400).json({ error: { teacher: "classrooms.create.error.teacher" } });
     }
 
-    
+
 
     let classroom = null;
     try {
@@ -27,7 +27,7 @@ routerClassrooms.post("/", authenticateToken, isTeacher, async (req, res) => {
             return res.status(404).json({ error: { name: "classrooms.create.error.repeated" } });
         }
 
-        classroom = await database.query('INSERT INTO classrooms (name, teacherId) VALUES (?,?)', [name, teacherId]);
+        classroom = await database.query('INSERT INTO classrooms (name,level, teacherId) VALUES (?,?,?)', [name, level, teacherId]);
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
@@ -40,7 +40,7 @@ routerClassrooms.post("/", authenticateToken, isTeacher, async (req, res) => {
 routerClassrooms.put("/:classroomName", authenticateToken, isTeacher, async (req, res) => {
 
     let { classroomName } = req.params;
-    let { name } = req.body;
+    let { name, level } = req.body;
     let teacherId = req.user?.id;
 
     if (!classroomName?.trim()) {
@@ -73,6 +73,32 @@ routerClassrooms.put("/:classroomName", authenticateToken, isTeacher, async (req
     }
 
     res.status(200).json({ updated: classroom });
+});
+
+routerClassrooms.get("/:classroomName", authenticateToken, isTeacher, async (req, res) => {
+
+    let { classroomName } = req.params;
+
+    if (!classroomName) {
+        return res.status(400).json({ error: { classroomName: "classrooms.detail.error.classroomName" } });
+    }
+
+
+
+    let classroom = null;
+    try {
+        classroom = await database.query('SELECT c.name, c.level FROM classrooms c WHERE name = ?', [classroomName]);
+    } catch (e) {
+        return res.status(500).json({ error: { type: "internalServerError", message: e } });
+    } finally {
+
+    }
+
+    if (classroom) {
+        return res.status(404).json({ error: { email: "classrooms.detail.error.notExist" } });
+    }
+
+    res.status(200).json(classroom);
 });
 
 routerClassrooms.get("/list", authenticateToken, isTeacher, async (req, res) => {
