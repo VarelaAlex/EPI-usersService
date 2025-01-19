@@ -8,12 +8,10 @@ const {
 } = require('../auth');
 require('dotenv').config();
 
-let generateUsername = (name, lastName) => {
-    let cleanName = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
-    let cleanLastName = lastName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
-    let username = cleanName.charAt(0) + cleanLastName;
-    let randomNumber = Math.floor(Math.random() * 900) + 100;
-    return username + randomNumber;
+let generateUsername = (name, lastName, classroomNumber) => {
+    let cleanName = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase().replace(/\s+/g, '');
+    let cleanLastName = lastName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase().replace(/\s+/g, '');
+    return cleanName + cleanLastName.charAt(0) + classroomNumber;
 };
 
 const routerStudents = express.Router();
@@ -87,7 +85,7 @@ routerStudents.post("/", authenticateToken, isTeacher, async (req, res) => {
         return res.status(400).json({ error: { classroomName: "classrooms.detail.create.error.classroom.empty" } });
     }
 
-    let username = generateUsername(name, lastName);
+    let username = generateUsername(name, lastName, classroomNumber);
 
 
 
