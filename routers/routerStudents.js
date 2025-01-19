@@ -64,7 +64,7 @@ routerStudents.post("/login", async (req, res) => {
 
 routerStudents.post("/", authenticateToken, isTeacher, async (req, res) => {
 
-    let { name, lastName, age, classroomName } = req.body;
+    let { name, lastName, age, classroomName, school, classroomNumber, birthDate } = req.body;
     let teacherId = req.user?.id;
 
     if (!name?.trim()) {
@@ -94,7 +94,7 @@ routerStudents.post("/", authenticateToken, isTeacher, async (req, res) => {
     let response = null;
     try {
         let classroomId = await database.query("SELECT id FROM classrooms WHERE name = ? AND teacherId = ?", [classroomName, teacherId]);
-        response = await database.query('INSERT INTO students (username, name, lastName, age, classroomId) VALUES (?,?,?,?,?)', [username, name, lastName, age, classroomId[0].id]);
+        response = await database.query('INSERT INTO students (username, name, lastName, age, school, classroomNumber, birthDate, classroomId) VALUES (?,?,?,?,?,?,?,?)', [username, name, lastName, age, school, classroomNumber, birthDate, classroomId[0].id]);
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
@@ -107,7 +107,7 @@ routerStudents.post("/", authenticateToken, isTeacher, async (req, res) => {
 routerStudents.put("/:studentId", authenticateToken, isTeacher, async (req, res) => {
 
     let { studentId } = req.params;
-    let { name, lastName, age, classroomId } = req.body;
+    let { name, lastName, age, classroomId, school, classroomNumber, birthDate } = req.body;
 
     if (!studentId?.trim()) {
         return res.status(400).json({ error: { id: "classrooms.detail.update.error.id" } });
@@ -135,14 +135,7 @@ routerStudents.put("/:studentId", authenticateToken, isTeacher, async (req, res)
 
     let response = null;
     try {
-        response = await database.query(
-            'UPDATE students \
-            SET \
-                name = IFNULL(?, name), \
-                lastName = IFNULL(?, lastName), \
-                age = IFNULL(?, age), \
-                classroomId = IFNULL(?, classroomId) \
-            WHERE id = ?', [name, lastName, age, classroomId, studentId]);
+        response = await database.query('UPDATE students SET name = IFNULL(?, name), lastName = IFNULL(?, lastName), age = IFNULL(?, age), classroomId = IFNULL(?, classroomId), school = IFNULL(?, school), classroomNumber = IFNULL(?, classroomNumber), birthDate = IFNULL(?, birthDate) WHERE id = ?', [name, lastName, age, classroomId, school, classroomNumber, birthDate, studentId]);
     } catch (e) {
         return res.status(500).json({ error: { type: "internalServerError", message: e } });
     } finally {
