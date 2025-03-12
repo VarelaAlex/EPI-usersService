@@ -4,6 +4,7 @@ let cors = require("cors");
 const routerTeachers = require("./routers/routerTeacher");
 const routerStudents = require("./routers/routerStudents");
 const routerClassrooms = require("./routers/routerClassrooms");
+const routerSurveys = require("./routers/routerSurveys");
 const database = require("./database");
 require("dotenv").config();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use("/teachers", routerTeachers);
 app.use("/students", routerStudents);
 app.use("/classrooms", routerClassrooms);
+app.use("/surveys", routerSurveys);
 
 let findRefreshToken = async (refreshToken) => {
 	try {
