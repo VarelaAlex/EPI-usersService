@@ -15,6 +15,10 @@ app.use(cors({
 	             origin: "*", methods: "GET, POST, PUT, DELETE, OPTIONS", allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization", credentials: true
              }));
 
+app.options("*", (req, res) => {
+	res.status(204).send(); // Handles preflight requests
+});
+
 app.use(express.json());
 
 app.use("/teachers", routerTeachers);
