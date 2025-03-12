@@ -12,7 +12,7 @@ const port = process.env.PORT;
 const app = express();
 
 app.use(cors({
-	             origin: "http://156.35.163.141:81", credentials: true
+	             origin: "*", methods: "GET, POST, PUT, DELETE, OPTIONS", allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization", credentials: true
              }));
 
 app.use(express.json());
