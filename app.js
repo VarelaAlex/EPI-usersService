@@ -11,7 +11,10 @@ require("dotenv").config();
 const port = process.env.PORT;
 const app = express();
 
-app.use(cors());
+app.use(cors({
+	             origin: "http://156.35.163.141:81", credentials: true
+             }));
+
 app.use(express.json());
 
 app.use("/teachers", routerTeachers);
@@ -21,9 +24,7 @@ app.use("/surveys", routerSurveys);
 
 let findRefreshToken = async (refreshToken) => {
 	try {
-		let refreshTokenResponse = await database.query("SELECT refreshToken FROM refreshTokens WHERE refreshToken = ?",
-		                                                [refreshToken]
-		);
+		let refreshTokenResponse = await database.query("SELECT refreshToken FROM refreshTokens WHERE refreshToken = ?", [refreshToken]);
 		if ( refreshTokenResponse.length <= 0 ) {
 			return false;
 		}
@@ -63,10 +64,7 @@ app.post("/token", async (req, res) => {
 			return res.status(403).json({ error: "Forbidden" });
 		}
 
-		const accessToken = jwt.sign({ id: user.id, role: user.role },
-		                             process.env.ACCESS_TOKEN_SECRET,
-		                             { expiresIn: "0.3h" }
-		);
+		const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "0.3h" });
 		res.status(200).json(accessToken);
 	});
 });
