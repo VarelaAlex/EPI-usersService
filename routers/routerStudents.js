@@ -59,7 +59,9 @@ routerStudents.post("/login", async (req, res) => {
 	res.status(200).json({
 		                     accessToken:  tokens.accessToken,
 		                     refreshToken: tokens.refreshToken,
-		                     name:         response[ 0 ].name
+		                     name:         response[ 0 ].name,
+							 id: response[0].id,
+							 username:  response[ 0 ].username
 	                     });
 });
 
