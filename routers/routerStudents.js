@@ -6,6 +6,7 @@ const {
 require("dotenv").config();
 
 let generateUsername = (name, lastName, classroomNumber) => {
+	/**
 	let cleanName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase().replace(/\s+/g, "");
 	let cleanLastName = lastName.normalize("NFD")
 	                            .replace(/[\u0300-\u036f]/g, "")
@@ -13,6 +14,9 @@ let generateUsername = (name, lastName, classroomNumber) => {
 	                            .toLowerCase()
 	                            .replace(/\s+/g, "");
 	return cleanName + cleanLastName.charAt(0) + classroomNumber;
+	 */
+	let random = Math.floor(Math.random() * 90) + 10;
+	return `${name}-${lastName}-${classroomNumber}_${random}`;
 };
 
 const routerStudents = express.Router();
