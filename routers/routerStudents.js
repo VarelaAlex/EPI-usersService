@@ -15,8 +15,7 @@ let generateUsername = (name, lastName, classroomNumber) => {
 	                            .replace(/\s+/g, "");
 	return cleanName + cleanLastName.charAt(0) + classroomNumber;
 	 */
-	let random = Math.floor(Math.random() * 90) + 10;
-	return `${name}-${lastName}-${classroomNumber}_${random}`;
+	return `${name}-${lastName}`;
 };
 
 const routerStudents = express.Router();
