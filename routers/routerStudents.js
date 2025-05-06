@@ -5,7 +5,7 @@ const {
       } = require("../auth");
 require("dotenv").config();
 
-let generateUsername = (name, lastName, classroomNumber) => {
+let generateUsername = (name, lastName, classroomName) => {
 	/**
 	let cleanName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase().replace(/\s+/g, "");
 	let cleanLastName = lastName.normalize("NFD")
@@ -15,7 +15,7 @@ let generateUsername = (name, lastName, classroomNumber) => {
 	                            .replace(/\s+/g, "");
 	return cleanName + cleanLastName.charAt(0) + classroomNumber;
 	 */
-	return `${name}-${lastName}`;
+	return `${name}${lastName}${classroomName}`;
 };
 
 const routerStudents = express.Router();
@@ -169,7 +169,7 @@ routerStudents.post("/", authenticateToken, isTeacher, async (req, res) => {
 	}
 
 	// Generate username
-	let username = generateUsername(name, lastName, classroomNumber);
+	let username = generateUsername(name, lastName, classroomName);
 
 	let response = null;
 	try {
