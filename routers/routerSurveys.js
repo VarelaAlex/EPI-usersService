@@ -39,4 +39,23 @@ routerSurveys.post("/:surveyCode", authenticateToken, isTeacher, async (req, res
 	res.status(200).json({ message: "survey.success" });
 });
 
+routerSurveys.get("/:studentId", authenticateToken, isTeacher, async (req, res) => {
+	let result = null;
+	try {
+		result = await database.query(" SELECT s.* FROM surveys s where s.studentId = ? AND surveyCode = 'A' ORDER BY date DESC LIMIT 1", [req.params.studentId]);
+	}
+	catch ( e ) {
+		return res.status(500).json({ error: { type: "internalServerError", message: e } });
+	}
+	finally {
+
+	}
+
+	if (result && result.length <= 0 ) {
+		return res.status(500).json({ error: { type: "internalServerError" } });
+	}
+
+	res.status(200).json(result[0]);
+})
+
 module.exports = routerSurveys;
