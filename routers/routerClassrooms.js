@@ -178,4 +178,28 @@ routerClassrooms.delete("/:classroomName", authenticateToken, isTeacher, async (
 	res.status(200).json({ deleted: true });
 });
 
+routerClassrooms.get("/report/:classroomName", authenticateToken, isTeacher, async (req, res) => {
+	let {classroomName} = req.params;
+
+	if (!classroomName?.trim()) {
+		return res.status(400).json({error: {id: "classrooms.report.error.name"}});
+	}
+
+	let result = null;
+
+	try {
+		result =
+			await database.query("SELECT cla.name AS classroomName, stu.username, stu.age, stu.socioEconomicLevel, stu.nationalOrigin, stu.learningReadingRisk, stu.learningWritingRisk, stu.specificSupportNeeds, stu.otherSpecificSupportNeeds, stu.familyBackground, stu.learningDiagnosedDifficulties, stu.educationalSupport, stu.otherEducationalSupport, stu.firstWords, sur.score, sur.surveyCode FROM classrooms cla JOIN students stu ON stu.classroomId = cla.id JOIN surveys sur ON stu.id = sur.studentId WHERE cla.name = ? AND sur.surveyCode = 'A'", [classroomName]);
+	} catch (e) {
+		return res.status(500).json({error: {type: "internalServerError", message: e}});
+	} finally {
+	}
+
+	if (result?.affectedRows === 0) {
+		return res.status(404).json({error: {classroom: "classrooms.report.error.notExist"}});
+	}
+
+	res.status(200).json({result});
+})
+
 module.exports = routerClassrooms;
