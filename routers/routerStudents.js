@@ -15,7 +15,7 @@ let generateUsername = (name, lastName, classroomName) => {
 	                            .replace(/\s+/g, "");
 	return cleanName + cleanLastName.charAt(0) + classroomNumber;
 	 */
-	return `${name}${lastName}${classroomName}`;
+	return `${name.split(" ")[0]}${lastName.split(" ")[0]}${classroomName}`;
 };
 
 const routerStudents = express.Router();
