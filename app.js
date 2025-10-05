@@ -13,8 +13,8 @@ const app = express();
 
 const fs = require('fs');
 
-const ACCESS_TOKEN_SECRET = fs.readFileSync('/run/secrets/ACCESS_TOKEN_SECRET', 'utf8').trim();
-const REFRESH_TOKEN_SECRET = fs.readFileSync('/run/secrets/REFRESH_TOKEN_SECRET', 'utf8').trim();
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || fs.readFileSync('/run/secrets/ACCESS_TOKEN_SECRET', 'utf8').trim();
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || fs.readFileSync('/run/secrets/REFRESH_TOKEN_SECRET', 'utf8').trim();
 
 app.use(cors({
 	             origin: "*", methods: "GET, POST, PUT, DELETE, OPTIONS", allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization", credentials: true

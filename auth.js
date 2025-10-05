@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 
-const ACCESS_TOKEN_SECRET = fs.readFileSync('/run/secrets/ACCESS_TOKEN_SECRET', 'utf8').trim();
-const REFRESH_TOKEN_SECRET = fs.readFileSync('/run/secrets/REFRESH_TOKEN_SECRET', 'utf8').trim();
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || fs.readFileSync('/run/secrets/ACCESS_TOKEN_SECRET', 'utf8').trim();
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || fs.readFileSync('/run/secrets/REFRESH_TOKEN_SECRET', 'utf8').trim();
 
 generateTokens = (user) => {
     let accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_TOKEN_SECRET, { expiresIn: '15m' });

@@ -5,9 +5,9 @@ require("dotenv").config();
 
 let database;
 
-const dbUser = fs.readFileSync('/run/secrets/DB_USER', 'utf8').trim();
-const dbPassword = fs.readFileSync('/run/secrets/DB_PASSWORD', 'utf8').trim();
-const dbName = fs.readFileSync('/run/secrets/DB_NAME', 'utf8').trim();
+const dbUser = process.env.DB_USER || fs.readFileSync('/run/secrets/DB_USER', 'utf8').trim();
+const dbPassword = process.env.DB_PASSWORD || fs.readFileSync('/run/secrets/DB_PASSWORD', 'utf8').trim();
+const dbName = process.env.DB_NAME || fs.readFileSync('/run/secrets/DB_NAME', 'utf8').trim();
 const dbHost = process.env.DB_HOST;
 
 let initializeConnectionPool=()=> {
