@@ -1,16 +1,22 @@
 const mysql = require("mysql");
 const util = require("util");
+const fs = require('fs');
 require("dotenv").config();
 
 let database;
 
+const dbUser = fs.readFileSync('/run/secrets/DB_USER', 'utf8').trim();
+const dbPassword = fs.readFileSync('/run/secrets/DB_PASSWORD', 'utf8').trim();
+const dbName = fs.readFileSync('/run/secrets/DB_NAME', 'utf8').trim();
+const dbHost = process.env.DB_HOST;
+
 let initializeConnectionPool=()=> {
     database = mysql.createPool({
         connectionLimit: 10,
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
+        host: dbHost,
+        user: dbUser,
+        password: dbPassword,
+        database: dbName,
         multipleStatements: true
     });
 

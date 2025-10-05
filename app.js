@@ -11,6 +11,11 @@ require("dotenv").config();
 const port = process.env.PORT;
 const app = express();
 
+const fs = require('fs');
+
+const ACCESS_TOKEN_SECRET = fs.readFileSync('/run/secrets/ACCESS_TOKEN_SECRET', 'utf8').trim();
+const REFRESH_TOKEN_SECRET = fs.readFileSync('/run/secrets/REFRESH_TOKEN_SECRET', 'utf8').trim();
+
 app.use(cors({
 	             origin: "*", methods: "GET, POST, PUT, DELETE, OPTIONS", allowedHeaders: "Origin, X-Requested-With, Content-Type, Accept, Authorization", credentials: true
              }));
@@ -56,7 +61,7 @@ app.post("/token", async (req, res) => {
 		return res.status(403).json({ error: "Forbidden" });
 	}
 
-	jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
+	jwt.verify(refreshToken, REFRESH_TOKEN_SECRET, async (err, user) => {
 		if ( err ) {
 			console.log("The refreshToken is not valid " + Date.now());
 			try {
@@ -68,7 +73,7 @@ app.post("/token", async (req, res) => {
 			return res.status(403).json({ error: "Forbidden" });
 		}
 
-		const accessToken = jwt.sign({ id: user.id, role: user.role }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "0.3h" });
+		const accessToken = jwt.sign({ id: user.id, role: user.role }, ACCESS_TOKEN_SECRET, { expiresIn: "0.3h" });
 		res.status(200).json(accessToken);
 	});
 });
