@@ -10,5 +10,8 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "supertest": "^7.0.0"
+  },
+  "scripts": {
+    "start": "node app.js"
   }
-}
+  }
